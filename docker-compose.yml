@@ -1,0 +1,26 @@
+version: '3'
+services:
+  my_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8000:8000
+    volumes:
+      - .:/var/www/html
+    environment:
+      DATABASE_URL: mysql://root:root@db/my_app
+    depends_on:
+      - db
+  db:
+    image: mysql
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: my_app
+    volumes:
+      - db-data:/var/lib/mysql
+
+volumes:
+  db-data:
