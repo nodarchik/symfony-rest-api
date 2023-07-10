@@ -108,5 +108,21 @@ class User
 
         return $this;
     }
+    // Money transfer
+    #[ORM\Column(type: "decimal", precision: 10, scale: 2)]
+    private ?float $balance = 0;
+
+
+    public function getBalance(): ?float
+    {
+        return $this->balance;
+    }
+
+    public function setBalance(float $balance): self
+    {
+        $this->balance = $balance;
+
+        return $this;
+    }
 
 }

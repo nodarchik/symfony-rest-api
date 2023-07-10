@@ -135,4 +135,32 @@ class UserController extends AbstractController
         ]);
     }
 
+
+    #[Route('/users/transfer', name: 'user_transfer', methods:['post'] )]
+    public function transfer(ManagerRegistry $doctrine, Request $request): JsonResponse
+    {
+        $input = json_decode($request->getContent(), true);
+
+        $fromUser = $doctrine->getRepository(User::class)->find($input['fromUserId']);
+        $toUser = $doctrine->getRepository(User::class)->find($input['toUserId']);
+        $amount = $input['amount'];
+
+        if(!$fromUser || !$toUser) {
+            return $this->json(['status' => 'error', 'message' => 'User not found'], 404);
+        }
+        if($fromUser->getBalance() < $amount) {
+            return $this->json(['status' => 'error', 'message' => 'Not enough money'], 400);
+        }
+
+        $fromUser->setBalance($fromUser->getBalance() - $amount);
+        $toUser->setBalance($toUser->getBalance() + $amount);
+
+        $entityManager = $doctrine->getManager();
+        $entityManager->persist($fromUser);
+        $entityManager->persist($toUser);
+        $entityManager->flush();
+
+        return $this->json(['status' => 'success', 'message' => 'Transfer successful']);
+    }
+
 }

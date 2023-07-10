@@ -184,5 +184,8 @@
         "files": [
             "./config/packages/validator.yaml"
         ]
+    },
+    "yceruto/money-bundle": {
+        "version": "v1.1.0"
     }
 }

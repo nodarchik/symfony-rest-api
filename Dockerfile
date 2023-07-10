@@ -2,7 +2,6 @@
 FROM php:8.2-fpm-alpine
 
 # Install dependencies
-# These include libraries that PHP extensions and Symfony need
 RUN apk add --no-cache \
     curl \
     openssl \
@@ -12,16 +11,15 @@ RUN apk add --no-cache \
     zip \
     unzip \
     libzip-dev \
-    icu-dev 
+    icu \
+    icu-dev
 
 # Install PHP extensions
-# These extensions are necessary for Symfony and common PHP tasks
 RUN docker-php-ext-configure intl \
-    && docker-php-ext-install pdo_mysql mbstring pcntl bcmath intl zip
+    && docker-php-ext-install pdo_mysql mbstring pcntl bcmath intl zip \
+    && echo "extension=intl.so" > /usr/local/etc/php/conf.d/docker-php-ext-intl.ini
 
 # Get latest Composer
-# Composer is a tool for dependency management in PHP.
-# It allows you to declare the libraries your project depends on, and it will manage (install/update) them for you.
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Set working directory
@@ -31,9 +29,6 @@ WORKDIR /var/www/html
 COPY . .
 
 # Install all PHP dependencies
-# The --no-dev flag disables installation of packages listed in require-dev.
-# The --optimize-autoloader flag convert PSR-0/4 autoloading to classmap to get a faster autoloader.
-# composer clear-cache clears composer's internal package cache.
 RUN composer install --no-dev --optimize-autoloader && composer clear-cache
 
 # Change owner to www-data for all application files
