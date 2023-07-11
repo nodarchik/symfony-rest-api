@@ -24,6 +24,8 @@ class UserController extends AbstractController
             'personalCode' => $user->getPersonalCode(),
             'phoneNumber' => $user->getPhoneNumber(),
             'dateOfBirth' => $user->getDateOfBirth()->format('Y-m-d'),
+            'active' => $user->getActive(),
+            'balance' => $user->getBalance()
         ];
     }
 
@@ -40,14 +42,19 @@ class UserController extends AbstractController
     public function create(ManagerRegistry $doctrine, Request $request): JsonResponse
     {
         $validator = Validation::createValidator();
-        $input = $request->request->all();
+        $input = json_decode($request->getContent(), true);
 
         $constraints = new Assert\Collection([
-            'name' => new Assert\Length(['min' => 1]),
-            'surname' => new Assert\Length(['min' => 1]),
-            'personalCode' => new Assert\Length(['min' => 1]),
-            'phoneNumber' => new Assert\Length(['min' => 1]),
-            'dateOfBirth' => new Assert\Date()
+            'fields' => [
+                'name' => new Assert\Length(['min' => 1]),
+                'surname' => new Assert\Length(['min' => 1]),
+                'personalCode' => new Assert\Length(['min' => 1]),
+                'phoneNumber' => new Assert\Length(['min' => 1]),
+                'dateOfBirth' => new Assert\Date(),
+                'active' => new Assert\Optional([new Assert\Type('bool')]),
+                'balance' => new Assert\Optional([new Assert\Type('numeric')])
+            ],
+            'allowExtraFields' => false
         ]);
 
         $violations = $validator->validate($input, $constraints);
@@ -64,6 +71,8 @@ class UserController extends AbstractController
         $user->setPhoneNumber($input['phoneNumber']);
         $dateOfBirthObject = DateTime::createFromFormat('Y-m-d', $input['dateOfBirth']);
         $user->setDateOfBirth($dateOfBirthObject);
+        $user->setActive($input['active']);
+        $user->setBalance($input['balance']);
 
         $entityManager->persist($user);
         $entityManager->flush();
@@ -93,7 +102,7 @@ class UserController extends AbstractController
             return $this->json(['status' => 'error', 'message' => 'User not found'], 404);
         }
 
-        $input = $request->request->all();
+        $input = json_decode($request->getContent(), true);
 
         $user->setName($input['name']);
         $user->setSurname($input['surname']);
